@@ -1,7 +1,9 @@
 local addonName, addon = ...
 LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceConsole-3.0')
 local AceGUI = LibStub("AceGUI-3.0")
+
 addon:RegisterChatCommand("pdd", "pddCommand")
+addon:RegisterChatCommand("pddgui", "pddguiCommand")
 
 local function dumpTable(table, depth)
   if (depth > 200) then
@@ -91,9 +93,7 @@ local function AddCard(cards, cardInfo)
    end
 end
 
--- our slash command /pdd
-
-function addon:pddCommand(input)
+local function FindCards()
    local connectedRealms = GetAutoCompleteRealms()
 	local currentFaction = UnitFactionGroup("player")
    local guilds = {}
@@ -132,11 +132,18 @@ function addon:pddCommand(input)
          end
 		end
    end
+   return cards
+end
+
+-- our slash command /pdd
+
+function addon:pddCommand(input)
+   local cards = FindCards()
    -- todo: sort output, ideally by expansion, then suit
    for suit, ranks in pairs(cards) do
       local line = ""
       local missing = 8
-      for rank = 1, 10 do
+      for rank = 1, 8 do
          local cardInfo = ranks[rank]
          local present = "*"
          if cardInfo then
@@ -149,4 +156,40 @@ function addon:pddCommand(input)
       line = line .. " " .. tostring(missing) .. " " .. suit
       addon:Print(line)
    end
+
+end
+
+function addon:pddguiCommand(input)
+   local f = AceGUI:Create("Frame")
+   f:SetCallback("OnClose",function(widget) AceGUI:Release(widget) end)
+   f:SetTitle("Potential Darkmoon Decks")
+   f:SetLayout("Fill")
+
+   scroll = AceGUI:Create("ScrollFrame")
+   scroll:SetLayout("List")
+   f:AddChild(scroll)
+
+   local cards = FindCards()
+
+   -- add each suit as a SimpleGroup of 8 items and a Label for the suit name
+
+   for suit, ranks in pairs(cards) do
+      local group = AceGUI:Create("InlineGroup")
+      group:SetLayout("Flow")
+      for rank = 1, 8 do
+         local cardInfo = ranks[rank]
+         slot = AceGUI:Create("ActionSlotItem")
+         if cardInfo then
+            slot:SetText(cardInfo.itemLink)
+         else
+            slot:SetDisabled(true)
+         end
+         group:AddChild(slot)
+      end
+      local label = AceGUI:Create("Label")
+      label:SetText(suit)
+      group:AddChild(label)
+      scroll:AddChild(group)
+   end
+
 end
