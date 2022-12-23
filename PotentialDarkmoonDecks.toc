@@ -1,0 +1,8 @@
+## Interface: 100002
+## Title: PotentialDarkmoonDecks
+## Notes: Display Darkmoon cards
+## Author: SpareSimian
+## Version: 0.1
+## Dependencies: DataStore, DataStore_Containers
+
+PotentialDarkmoonDecks.lua
