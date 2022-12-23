@@ -160,10 +160,11 @@ function addon:pddCommand(input)
 end
 
 function addon:pddguiCommand(input)
-   local f = AceGUI:Create("Frame")
+   local f = AceGUI:Create("Window")
    f:SetCallback("OnClose",function(widget) AceGUI:Release(widget) end)
    f:SetTitle("Potential Darkmoon Decks")
    f:SetLayout("Fill")
+   f:SetWidth(1200) -- how can we compute this to exactly fit?
 
    scroll = AceGUI:Create("ScrollFrame")
    scroll:SetLayout("List")
@@ -174,13 +175,17 @@ function addon:pddguiCommand(input)
    -- add each suit as a SimpleGroup of 8 items and a Label for the suit name
 
    for suit, ranks in pairs(cards) do
-      local group = AceGUI:Create("InlineGroup")
+      local group = AceGUI:Create("SimpleGroup")
+      group:SetFullWidth(true)
       group:SetLayout("Flow")
       for rank = 1, 8 do
          local cardInfo = ranks[rank]
-         slot = AceGUI:Create("ActionSlotItem")
+         slot = AceGUI:Create("Icon")
+         -- nice to have a bag slot tooltip here! 
          if cardInfo then
-            slot:SetText(cardInfo.itemLink)
+            local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
+            local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
+            slot:SetImage(texture)
          else
             slot:SetDisabled(true)
          end
