@@ -159,6 +159,32 @@ function addon:pddCommand(input)
 
 end
 
+local function AddCardIcon(parent, cardInfo)
+         slot = AceGUI:Create("Icon")
+         -- nice to have a bag slot tooltip here! 
+         if cardInfo then
+            local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
+            local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
+            slot:SetImage(texture)
+            -- tooltip support
+            print(cardInfo.itemLink)
+            slot:SetUserData("itemLink", cardInfo.itemLink)
+            slot:SetCallback("OnEnter", function(slot)
+               GameTooltip:SetOwner(slot.frame, "ANCHOR_CURSOR")
+               local itemLink = slot:GetUserData("itemLink")
+               print(itemLink)
+               GameTooltip:SetHyperlink(slot:GetUserData("itemLink"))
+               GameTooltip:Show()
+            end)
+            slot:SetCallback("OnLeave", function()
+               GameTooltip:Hide()
+            end)
+         else
+            slot:SetDisabled(true)
+         end
+         parent:AddChild(slot)
+end
+
 function addon:pddguiCommand(input)
    local f = AceGUI:Create("Window")
    f:SetCallback("OnClose",function(widget) AceGUI:Release(widget) end)
@@ -179,17 +205,7 @@ function addon:pddguiCommand(input)
       group:SetFullWidth(true)
       group:SetLayout("Flow")
       for rank = 1, 8 do
-         local cardInfo = ranks[rank]
-         slot = AceGUI:Create("Icon")
-         -- nice to have a bag slot tooltip here! 
-         if cardInfo then
-            local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
-            local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
-            slot:SetImage(texture)
-         else
-            slot:SetDisabled(true)
-         end
-         group:AddChild(slot)
+         AddCardIcon(group, ranks[rank])
       end
       local label = AceGUI:Create("Label")
       label:SetText(suit)
