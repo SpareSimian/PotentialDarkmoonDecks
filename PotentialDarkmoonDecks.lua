@@ -1,4 +1,7 @@
-
+local addonName, addon = ...
+LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceConsole-3.0')
+local AceGUI = LibStub("AceGUI-3.0")
+addon:RegisterChatCommand("pdd", "pddCommand")
 
 local function dumpTable(table, depth)
   if (depth > 200) then
@@ -35,14 +38,21 @@ local validRanks = {
 
 local function isDMCard(itemLink)
    -- cards look like regex "[(Ace|Two|Three|Four|Five|Six|Seven|Eight) of (<deck name>]"
-   local pos, last, rank, suit = string.find(itemLink, "%[(%a+) of ([%a ]+)]")
-   if not pos then
-      return pos
+   local found, _, rank, suit = string.find(itemLink, "%[(%a+) of ([%a ]+)]")
+   if not found then
+      return false
    end
    if not validRanks[rank] then
       return false
    end
-   return pos, last, rank, suit
+   local cardInfo = { rank=rank, suit=suit, itemLink = itemLink }
+   -- cache item details
+   local item = Item:CreateFromItemLink(itemLink)
+   item:ContinueOnItemLoad(function()
+      cardInfo.itemLevel = item:GetCurrentItemLevel()
+      -- print(itemLink .. " " .. tostring(cardInfo.itemLevel))
+   end)
+   return cardInfo
 end
 
 local function GetCharacterGuild(account, realm, guildName)
@@ -69,22 +79,21 @@ local function _IterateGuildBankSlots(guild, callback)
 	end
 end
 
-local function AddCard(cards, rank, suit)
-   -- print("AddCard " .. rank .. " of " .. suit)
+local function AddCard(cards, cardInfo)
+   local suit = cardInfo.suit
+   -- addon:Print("AddCard " .. cardInfo.rank .. " of " .. suit)
    if not cards[suit] then
       cards[suit] = {}
    end
-   local rankNumber = validRanks[rank]
+   local rankNumber = validRanks[cardInfo.rank]
    if not cards[suit][rankNumber] then
-      cards[suit][rankNumber] = 1
-   else
-      cards[suit][rankNumber] = cards[suit][rankNumber] + 1
+      cards[suit][rankNumber] = cardInfo
    end
 end
 
-SLASH_PDD1="/pdd"
-SlashCmdList["PDD"] = function(msg)
-   print("Potential Darkmoon decks:")
+-- our slash command /pdd
+
+function addon:pddCommand(input)
    local connectedRealms = GetAutoCompleteRealms()
 	local currentFaction = UnitFactionGroup("player")
    local guilds = {}
@@ -96,10 +105,10 @@ SlashCmdList["PDD"] = function(msg)
                if DataStore:GetCharacterFaction(character) == currentFaction then
                   -- check this character's inventory
                   DataStore:IterateContainerSlots(character, function(containerName, itemID, itemLink, itemCount, isBattlePet)
-                     local pos, last, rank, suit = isDMCard(itemLink) 
-                     if pos then
-                        AddCard(cards, rank, suit)
-                        --print("PDD: " .. characterName .. " has card " .. itemLink)
+                     local cardInfo = isDMCard(itemLink) 
+                     if cardInfo then
+                        AddCard(cards, cardInfo)
+                        -- addon:Print(characterName .. " has card " .. itemLink)
                      end
                   end)
                   -- check this character's guild bank
@@ -107,13 +116,13 @@ SlashCmdList["PDD"] = function(msg)
                   if guildName and not contains(guilds, guildName) then
                      local guild = GetCharacterGuild(account, realm, guildName)
                      if guild then
-                        -- print("PDD: checking guild bank " .. guildName)
+                        -- addon:Print("checking guild bank " .. guildName)
                         table.insert(guilds, guildName)
                         _IterateGuildBankSlots(guild, function(location, itemID, itemLink, itemCount, isBattlePet)
-                           local pos, last, rank, suit = isDMCard(itemLink) 
-                           if pos then
-                              AddCard(cards, rank, suit)
-                              -- print("PDD: " .. guildName .. " has card " .. itemLink)
+                           local cardInfo = isDMCard(itemLink) 
+                           if cardInfo then
+                              AddCard(cards, cardInfo)
+                              -- addon:Print(guildName .. " has card " .. itemLink)
                            end
                         end)
                      end
@@ -123,20 +132,21 @@ SlashCmdList["PDD"] = function(msg)
          end
 		end
    end
-   table.sort(cards)
+   -- todo: sort output, ideally by expansion, then suit
    for suit, ranks in pairs(cards) do
       local line = ""
       local missing = 8
       for rank = 1, 10 do
-         local count = ranks[rank]
-         if count then
+         local cardInfo = ranks[rank]
+         local present = "*"
+         if cardInfo then
             missing = missing - 1
          else
-            count = 0 
+            present = " "
          end
-         line = line .. " " .. tostring(count)
+         line = line .. " " .. present
       end
       line = line .. " " .. tostring(missing) .. " " .. suit
-      print(line)
+      addon:Print(line)
    end
 end
