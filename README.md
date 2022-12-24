@@ -1,6 +1,8 @@
 # PotentialDarkmoonDecks
 Display Darkmoon cards in one's inventory that could be used to create a full deck
 
+![PotentialDarkmoonDecks screenshot with tooltip](PotentialDarkmoonDeck-800.png)
+
 Using the Altoholic DataStore database, list all Darkmoon cards
 accessible to the current character. This is useful to determine which
 cards need to be acquired (purchased or made) to complete a deck.
