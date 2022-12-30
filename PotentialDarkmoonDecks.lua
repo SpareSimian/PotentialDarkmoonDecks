@@ -161,6 +161,8 @@ end
 
 local function AddCardIcon(parent, cardInfo)
          slot = AceGUI:Create("Icon")
+         slot:SetWidth(74)
+         slot:SetHeight(74)
          -- nice to have a bag slot tooltip here! 
          if cardInfo then
             local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
@@ -190,7 +192,7 @@ function addon:pddguiCommand(input)
    f:SetCallback("OnClose",function(widget) AceGUI:Release(widget) end)
    f:SetTitle("Potential Darkmoon Decks")
    f:SetLayout("Fill")
-   f:SetWidth(1200) -- how can we compute this to exactly fit?
+   f:SetWidth((8 * 80) + 200)
 
    scroll = AceGUI:Create("ScrollFrame")
    scroll:SetLayout("List")
@@ -208,7 +210,8 @@ function addon:pddguiCommand(input)
          AddCardIcon(group, ranks[rank])
       end
       local label = AceGUI:Create("Label")
-      label:SetText(suit)
+      label:SetFontObject(GameFontNormalLarge)
+      label:SetText("  " .. suit)
       group:AddChild(label)
       scroll:AddChild(group)
    end
