@@ -35,18 +35,29 @@ local validRanks = {
    ["Five"] = 5,
    ["Six"] = 6,
    ["Seven"] = 7,
-   ["Eight"] = 8 
+   ["Eight"] = 8,
+   ["Blank Card"] = 9 -- special, same as Joker
 }
 
+-- TODO: match jokers ("{suit} Joker" and "Blank Card of {suit}")
+
 local function isDMCard(itemLink)
-   -- cards look like regex "[(Ace|Two|Three|Four|Five|Six|Seven|Eight) of (<deck name>]"
+   -- cards look like regex "[(Ace|Two|Three|Four|Five|Six|Seven|Eight|Blank Card) of (<deck name>]"
    local found, _, rank, suit = string.find(itemLink, "%[(%a+) of ([%a ]+)]")
    if not found then
+      found, _, suit, rank = string.find(itemLink, "%[(%a+) (Joker)")
+   end
+   if not found then
       return false
+   end
+   if rank == "Joker" then
+      rank = "Blank Card"
    end
    if not validRanks[rank] then
       return false
    end
+   -- tell the server to send us the details. This happens asynchronously but we need it later
+   GetItemInfo(itemLink)
    local cardInfo = { rank=rank, suit=suit, itemLink = itemLink }
    -- cache item details
    local item = Item:CreateFromItemLink(itemLink)
@@ -143,7 +154,7 @@ function addon:pddCommand(input)
    for suit, ranks in pairs(cards) do
       local line = ""
       local missing = 8
-      for rank = 1, 8 do
+      for rank = 1, 9 do
          local cardInfo = ranks[rank]
          local present = "*"
          if cardInfo then
@@ -192,7 +203,7 @@ function addon:pddguiCommand(input)
    f:SetCallback("OnClose",function(widget) AceGUI:Release(widget) end)
    f:SetTitle("Potential Darkmoon Decks")
    f:SetLayout("Fill")
-   f:SetWidth((8 * 80) + 200)
+   f:SetWidth((9 * 80) + 200)
 
    scroll = AceGUI:Create("ScrollFrame")
    scroll:SetLayout("List")
@@ -206,7 +217,7 @@ function addon:pddguiCommand(input)
       local group = AceGUI:Create("SimpleGroup")
       group:SetFullWidth(true)
       group:SetLayout("Flow")
-      for rank = 1, 8 do
+      for rank = 1, 9 do
          AddCardIcon(group, ranks[rank])
       end
       local label = AceGUI:Create("Label")

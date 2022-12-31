@@ -2,7 +2,7 @@
 ## Title: PotentialDarkmoonDecks
 ## Notes: Display Darkmoon cards
 ## Author: SpareSimian
-## Version: 0.2
+## Version: 0.4
 ## Dependencies: DataStore, DataStore_Containers, DataStore_Characters
 
 libs\LibStub\LibStub.lua
