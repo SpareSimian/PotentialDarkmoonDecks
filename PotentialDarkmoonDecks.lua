@@ -181,7 +181,11 @@ local function AddCardIcon(parent, cardInfo)
             -- callback will set texture when it arrives from server
             item:ContinueOnItemLoad(function()
                local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
-               slot:SetImage(texture)
+               if texture then
+                  slot:SetImage(texture)
+               else
+                  addon:Print("ContinueOnItemLoad nil texture for " .. cardInfo.itemLink)
+               end
             end)
             slot:SetCallback("OnEnter", function(slot)
                GameTooltip:SetOwner(slot.frame, "ANCHOR_CURSOR")
