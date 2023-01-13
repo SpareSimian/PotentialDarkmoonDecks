@@ -174,6 +174,9 @@ local function AddCardIcon(parent, cardInfo)
          slot = AceGUI:Create("Icon")
          slot:SetWidth(74)
          slot:SetHeight(74)
+         -- now that we know the size, add to the parent to do the layout,
+         -- before setting the texture and arranging for a tooltip.
+         parent:AddChild(slot)
          if cardInfo then
             slot:SetUserData("itemLink", cardInfo.itemLink)
             local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
@@ -190,7 +193,6 @@ local function AddCardIcon(parent, cardInfo)
             slot:SetCallback("OnEnter", function(slot)
                GameTooltip:SetOwner(slot.frame, "ANCHOR_CURSOR")
                local itemLink = slot:GetUserData("itemLink")
-               -- print(itemLink)
                GameTooltip:SetHyperlink(slot:GetUserData("itemLink"))
                GameTooltip:Show()
             end)
@@ -200,7 +202,6 @@ local function AddCardIcon(parent, cardInfo)
          else
             slot:SetDisabled(true)
          end
-         parent:AddChild(slot)
 end
 
 function addon:pddguiCommand(input)
