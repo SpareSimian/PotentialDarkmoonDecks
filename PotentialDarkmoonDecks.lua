@@ -174,14 +174,15 @@ local function AddCardIcon(parent, cardInfo)
          slot = AceGUI:Create("Icon")
          slot:SetWidth(74)
          slot:SetHeight(74)
-         -- nice to have a bag slot tooltip here! 
          if cardInfo then
-            local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
-            local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
-            slot:SetImage(texture)
-            -- tooltip support
-            -- print(cardInfo.itemLink)
             slot:SetUserData("itemLink", cardInfo.itemLink)
+            local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
+            local item = Item:CreateFromItemLink(cardInfo.itemLink)
+            -- callback will set texture when it arrives from server
+            item:ContinueOnItemLoad(function()
+               local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
+               slot:SetImage(texture)
+            end)
             slot:SetCallback("OnEnter", function(slot)
                GameTooltip:SetOwner(slot.frame, "ANCHOR_CURSOR")
                local itemLink = slot:GetUserData("itemLink")
