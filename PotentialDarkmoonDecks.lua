@@ -43,6 +43,9 @@ local validRanks = {
 
 local function isDMCard(itemLink)
    -- cards look like regex "[(Ace|Two|Three|Four|Five|Six|Seven|Eight|Blank Card) of (<deck name>]"
+   if not itemLink then
+      return false
+   end
    local found, _, rank, suit = string.find(itemLink, "%[(%a+) of ([%a ]+)]")
    if not found then
       found, _, suit, rank = string.find(itemLink, "%[(%a+) (Joker)")
@@ -115,14 +118,15 @@ local function FindCards()
             for characterName, character in pairs(DataStore:GetCharacters(realm, account)) do
                if DataStore:GetCharacterFaction(character) == currentFaction then
                   -- check this character's inventory
+                  -- addon:Print("checking inventory " .. characterName)
                   DataStore:IterateContainerSlots(character, function(containerName, itemID, itemLink, itemCount, isBattlePet)
                      local cardInfo = isDMCard(itemLink) 
                      if cardInfo then
                         AddCard(cards, cardInfo)
-                        -- addon:Print(characterName .. " has card " .. itemLink)
                      end
                   end)
                   -- check this character's guild bank
+                  -- addon:Print("checking guild vault " .. characterName)
                   local guildName = DataStore:GetGuildInfo(character)
                   if guildName and not contains(guilds, guildName) then
                      local guild = GetCharacterGuild(account, realm, guildName)
@@ -223,6 +227,7 @@ function addon:pddguiCommand(input)
       local group = AceGUI:Create("SimpleGroup")
       group:SetFullWidth(true)
       group:SetLayout("Flow")
+      scroll:AddChild(group)
       for rank = 1, 9 do
          AddCardIcon(group, ranks[rank])
       end
@@ -230,7 +235,6 @@ function addon:pddguiCommand(input)
       label:SetFontObject(GameFontNormalLarge)
       label:SetText("  " .. suit)
       group:AddChild(label)
-      scroll:AddChild(group)
    end
 
 end
