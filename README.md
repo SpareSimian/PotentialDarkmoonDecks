@@ -25,3 +25,10 @@ window in a compact table. (This lacks the tooltips, though.)
 This addon requires the installation of
 [Altoholic](https://www.curseforge.com/wow/addons/altoholic) to
 acquire the data.
+
+## Known bugs
+
+The card icons may not be populated on first use. Re-open the addon to
+display them. So far I haven't figured out how to force the addon to
+wait for the server query to complete with this information before
+opening.
