@@ -5,6 +5,7 @@
 ## Version: 0.5
 ## Dependencies: DataStore, DataStore_Containers, DataStore_Characters
 ## IconTexture: Interface\Icons\Inv_inscription_darkmooncard_putrescence_a
+## AddonCompartmentFunc: pddgui_OnAddonCompartmentClick
 
 libs\LibStub\LibStub.lua
 libs\AceAddon-3.0\AceAddon-3.0.xml

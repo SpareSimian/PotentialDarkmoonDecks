@@ -238,3 +238,7 @@ function addon:pddguiCommand(input)
    end
 
 end
+
+function pddgui_OnAddonCompartmentClick(addonName, mouseButton, button)
+   addon:pddguiCommand(nil)
+end
