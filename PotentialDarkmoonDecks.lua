@@ -186,6 +186,8 @@ local function AddCardIcon(parent, cardInfo)
             local itemID = tonumber(cardInfo.itemLink:match("item:(%d+)"))
             local item = Item:CreateFromItemLink(cardInfo.itemLink)
             -- callback will set texture when it arrives from server
+            local _, _, _, _, icon, _, _ = GetItemInfoInstant(itemID) -- added in 7.0.3
+            slot:SetImage(icon)
             item:ContinueOnItemLoad(function()
                local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
                if texture then
