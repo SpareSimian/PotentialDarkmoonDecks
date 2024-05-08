@@ -1,8 +1,8 @@
-## Interface: 100206
+## Interface: 100207
 ## Title: PotentialDarkmoonDecks
 ## Notes: Display Darkmoon cards
 ## Author: SpareSimian
-## Version: 0.6
+## Version: 0.7
 ## Dependencies: DataStore, DataStore_Containers, DataStore_Characters
 ## IconTexture: Interface\Icons\Inv_inscription_darkmooncard_putrescence_a
 ## AddonCompartmentFunc: pddgui_OnAddonCompartmentClick
