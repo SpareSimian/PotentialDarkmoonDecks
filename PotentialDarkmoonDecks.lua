@@ -71,33 +71,9 @@ local function isDMCard(itemLink)
    return cardInfo
 end
 
-local function GetCharacterGuild(account, realm, guildName)
-   local guildKey = DataStore:GetGuild(guildName, realm, account)
-   if guildKey then
-      return DataStore_Containers.db.global.Guilds[guildKey]
-   end
-end
-
-local function _IterateGuildBankSlots(guild, callback)
-	for tabID, tab in pairs(guild.Tabs) do
-		if tab.name then
-			for slotID = 1, 98 do
-				local itemID, itemLink, itemCount, isBattlePet = DataStore:GetSlotInfo(tab, slotID)
-				
-				-- Callback only if there is an item in that slot
-				if itemID then
-					local location = format("%s, %s - col %d/row %d)", GUILD_BANK, tab.name, floor((slotID-1)/7)+1, ((slotID-1)%7)+1)
-				
-					callback(location, itemID, itemLink, itemCount, isBattlePet)
-				end
-			end
-		end
-	end
-end
-
-local function AddCard(cards, cardInfo)
+local function AddCard(cards, cardInfo, source)
    local suit = cardInfo.suit
-   -- addon:Print("AddCard " .. cardInfo.rank .. " of " .. suit)
+   -- addon:Print("AddCard " .. cardInfo.rank .. " of " .. suit .. " from " .. source)
    if not cards[suit] then
       cards[suit] = {}
    end
@@ -107,37 +83,46 @@ local function AddCard(cards, cardInfo)
    end
 end
 
+-- with TWW and the warbank, we can now look on "disconnected realms" and both factions
+local isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
+local searchAllRealms = isRetail
+
 local function FindCards()
-   local connectedRealms = GetAutoCompleteRealms()
+   local connectedRealms
+   if not searchAllRealms then connectedRealms = GetAutoCompleteRealms() end
 	local currentFaction = UnitFactionGroup("player")
    local guilds = {}
    local cards = {}
 	for account in pairs(DataStore:GetAccounts()) do
 		for realm in pairs(DataStore:GetRealms(account)) do
-         if contains(connectedRealms, realm) then
+         if not connectedRealms or contains(connectedRealms, realm) then
             for characterName, character in pairs(DataStore:GetCharacters(realm, account)) do
-               if DataStore:GetCharacterFaction(character) == currentFaction then
+               if searchAllRealms or (DataStore:GetCharacterFaction(character) == currentFaction) then
+               local characterNameWithRealm = characterName .. "-" .. realm
                   -- check this character's inventory
-                  -- addon:Print("checking inventory " .. characterName)
+                  -- addon:Print("checking inventory " .. characterNameWithRealm)
                   DataStore:IterateContainerSlots(character, function(containerName, itemID, itemLink, itemCount, isBattlePet)
                      local cardInfo = isDMCard(itemLink) 
                      if cardInfo then
-                        AddCard(cards, cardInfo)
+                        AddCard(cards, cardInfo, characterNameWithRealm .. " inventory")
                      end
                   end)
                   -- check this character's guild bank
-                  -- addon:Print("checking guild vault " .. characterName)
-                  local guildName = DataStore:GetGuildInfo(character)
+                  local guildName = DataStore:GetGuildName(character)
+                  -- addon:Print(characterNameWithRealm .. "(" .. tostring(character) .. ") is in guild " .. tostring(guildName))
                   if guildName and not contains(guilds, guildName) then
-                     local guild = GetCharacterGuild(account, realm, guildName)
-                     if guild then
+                     -- addon:Print("checking guild vault " .. guildName .. " for " .. characterNameWithRealm)
+                     -- local guild = GetCharacterGuild(account, realm, guildName)
+                     -- if guild then
+                     local guildID = DataStore:GetCharacterGuildID(character)
+                     if guildID then
                         -- addon:Print("checking guild bank " .. guildName)
                         table.insert(guilds, guildName)
-                        _IterateGuildBankSlots(guild, function(location, itemID, itemLink, itemCount, isBattlePet)
-                           local cardInfo = isDMCard(itemLink) 
+                        local guild = account .. "." .. realm .. "." .. guildName
+                        DataStore:IterateGuildBankSlots(guild, function(location, itemID, itemLink, itemCount, isBattlePet)
+                           local cardInfo = isDMCard(itemLink, true) 
                            if cardInfo then
-                              AddCard(cards, cardInfo)
-                              -- addon:Print(guildName .. " has card " .. itemLink)
+                              AddCard(cards, cardInfo, "guild bank " .. guildName)
                            end
                         end)
                      end
