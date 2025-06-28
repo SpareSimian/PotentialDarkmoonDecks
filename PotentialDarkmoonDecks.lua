@@ -229,3 +229,27 @@ end
 function pddgui_OnAddonCompartmentClick(addonName, mouseButton, button)
    addon:pddguiCommand(nil)
 end
+
+local minimapButtonCreated = false
+
+function addon:createMinimapButton()
+   if minimapButtonCreated then return end
+   local prettyName = "Potential Darkmoon Decks"
+   local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
+      type = "data source",
+      text = prettyName,
+      icon = "Interface\\Icons\\inv_misc_ticket_tarot_stack_01",
+      OnClick = function(self, btn)
+         addon:pddguiCommand(nil)
+      end,
+      OnTooltipShow = function(tooltip)
+         if not tooltip or not tooltip.AddLine then return end
+         tooltip:AddLine(prettyName)
+      end,
+   })
+   local icon = LibStub("LibDBIcon-1.0", true)
+   icon:Register(addonName, miniButton)
+   minimapButtonCreated = true
+end
+
+addon:createMinimapButton()
